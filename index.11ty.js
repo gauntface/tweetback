@@ -278,21 +278,14 @@ class Index extends Twitter {
 		</form>
 
 		<div>
-			<h2><a href="/recent/">Recent:</a></h2>
-			<div class="twtr-sentiment twtr-sentiment-max js">
-				<div class="twtr-sentiment-chart ct-chart"></div>
-				<div class="twtr-sentiment-label">
-					⬅️ New
-					<span>⬆️ 🙂<br>⬇️ 🙁</span>
-				</div>
-			</div>
+			<h2><a href="/recent/">Recent</a></h2>
 			<ol class="tweets tweets-linear-list" id="tweets-recent-home">
 				${recentTweetsHtml.join("")}
 			</ol>
 		</div>
 
 		<div>
-			<h2><a href="/popular/">Popular:</a></h2>
+			<h2><a href="/popular/">Popular</a></h2>
 			<ol class="tweets tweets-linear-list">
 				${mostPopularTweetsHtml.join("")}
 			</ol>
@@ -363,12 +356,6 @@ class Index extends Twitter {
 			${topHashes.slice(0, 5).map(hash => `<li><code>${hash.tag}</code> used ${hash.count} times ${hash.count > 1 && hash.count > hash.tweets.length ? `on ${hash.tweets.length} tweet${hash.tweets.length !== 1 ? "s" : ""}` : ""}</li>`).join("")}
 		</ol>
 		<p><em>${this.renderNumber(hashCount)} hashtags on ${this.renderNumber(tweetHashCount)} tweets (${this.renderPercentage(tweetHashCount, noRetweetsTweetCount)} of all tweets***)</em></p>
-		<h2 id="swears">Top 5 Swear Words</h2>
-		<ol>
-			${topSwears.slice(0, 5).map(swear => `<li><code>${this.renderSwearWord(swear.word)}</code> used ${swear.count} times ${swear.count > 1 && swear.count > swear.tweets.length ? `on ${swear.tweets.length} tweet${swear.tweets.length !== 1 ? "s" : ""}` : ""}</li>`).join("")}
-		</ol>
-		<p><em>${this.renderNumber(swearCount)} swear words on ${this.renderNumber(tweetSwearCount)} tweets (${this.renderPercentage(tweetSwearCount, noRetweetsTweetCount)} of all tweets***)</em></p>
-		<p>***: does not include retweets</p>
 
 		<script>
 		var searchForm = document.getElementById("search-url");
