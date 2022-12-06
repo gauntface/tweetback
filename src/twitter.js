@@ -1,8 +1,9 @@
 const Sentiment = require("sentiment");
-const { parseDomain } = require("parse-domain");
+const parseDomain = require("parse-domain");
 const dataSource = require("./DataSource");
 const metadata = require("../_data/metadata.js");
 const eleventyImg = require("@11ty/eleventy-img");
+const numeral = require('numeral');
 
 const ELEVENTY_IMG_OPTIONS = {
 	widths: [null],
@@ -10,7 +11,7 @@ const ELEVENTY_IMG_OPTIONS = {
 	// If you don’t want to check this into your git repository (and want to fetch them in your build)
 	// outputDir: "./_site/img/",
 	outputDir: "./img/",
-	urlPath: "/img/",
+	urlPath: "/twitter/img/",
 	cacheDuration: "*",
 	filenameFormat: function (id, src, width, format, options) {
 		return `${id}.${format}`;
@@ -59,19 +60,12 @@ class Twitter {
 		if(tweet.entities && tweet.entities.urls) {
 			for(let url of tweet.entities.urls) {
 				try {
-					let urlObj = new URL(url.expanded_url ?? url.url);
+					let urlObj = new URL(url.expanded_url);
 					let parsedDomain = parseDomain(urlObj.host);
-					let domain;
-					if (parsedDomain.topLevelDomains) {
-						const tld = parsedDomain.topLevelDomains.join(".");
-						domain = `${parsedDomain.domain}.${tld}`
-					} else {
-						domain = urlObj.host;
-					}
 					links.push({
 						host: urlObj.host,
 						origin: urlObj.origin,
-						domain: domain
+						domain: `${parsedDomain.domain}.${parsedDomain.tld}`
 					});
 				} catch(e) {
 					console.log( e );
@@ -105,14 +99,13 @@ class Twitter {
 	// }
 
 	getUrlObject(url) {
-		let expandedUrl = url.expanded_url ?? url.url;
-		let displayUrl = expandedUrl;
+		let displayUrl = url.expanded_url;
 		let className = "tweet-url";
-		let targetUrl = expandedUrl;
+		let targetUrl = url.expanded_url;
 
 		// Links to my tweets
 		if(displayUrl.startsWith(`https://twitter.com/${metadata.username}/status/`)) {
-			targetUrl = `/${expandedUrl.substr(`https://twitter.com/${metadata.username}/status/`.length)}`;
+			targetUrl = `/${url.expanded_url.substr(`https://twitter.com/${metadata.username}/status/`.length)}`;
 		}
 
 		// Links to other tweets
@@ -154,7 +147,7 @@ class Twitter {
 		// linkify urls
 		if( tweet.entities ) {
 			for(let url of tweet.entities.urls) {
-				if(url.expanded_url && url.expanded_url.indexOf(`/${tweet.id}/photo/`) > -1) {
+				if(url.expanded_url.indexOf(`/${tweet.id}/photo/`) > -1) { // || url.expanded_url.indexOf(`/${tweet.id}/video/`) > -1) {
 					text = text.replace(url.url, "");
 				} else {
 					let {targetUrl, className, displayUrl} = this.getUrlObject(url);
@@ -163,7 +156,7 @@ class Twitter {
 					text = text.replace(url.url, displayUrlHtml);
 
 					if(targetUrl.startsWith("https://") && !targetUrl.startsWith("https://twitter.com/")) {
-						medias.push(`<template data-island><a href="${targetUrl}"><img src="https://v1.opengraph.11ty.dev/${encodeURIComponent(targetUrl)}/small/onerror/" alt="OpenGraph image for ${displayUrl}" loading="lazy" decoding="async" width="375" height="197" class="tweet-media tweet-media-og" onerror="this.parentNode.remove()"></a></template>`);
+						medias.push(`<a href="${targetUrl}"><img src="https://v1.opengraph.11ty.dev/${encodeURIComponent(targetUrl)}/small/" alt="OpenGraph image for ${displayUrl}" loading="lazy" decoding="async" width="375" height="197" class="tweet-media tweet-media-og"></a>`);
 					}
 				}
 			}
@@ -210,7 +203,7 @@ class Twitter {
 			}
 		}
 		if(medias.length) {
-			text += `<is-land on:visible><div class="tweet-medias">${medias.join("")}</div></is-land>`;
+			text += `<div class="tweet-medias">${medias.join("")}</div>`;
 		}
 		return text;
 	}
@@ -228,7 +221,7 @@ class Twitter {
 
 	renderDate(d) {
 		let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-		return `${d.getFullYear()} ${months[d.getMonth()]} ${d.getDate()}`;
+		return `${d.getHours()}:${numeral(d.getMinutes()).format('00')} • ${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
 	}
 
 	renderPercentage(count, total) {
@@ -246,25 +239,34 @@ class Twitter {
 		let shareCount = parseInt(tweet.retweet_count, 10) + (tweet.quote_count ? tweet.quote_count : 0);
 
 		return `<li id="${tweet.id_str}" class="tweet${options.class ? ` ${options.class}` : ""}${this.isReply(tweet) && tweet.in_reply_to_screen_name !== metadata.username ? " is_reply " : ""}${this.isRetweet(tweet) ? " is_retweet" : ""}${this.isMention(tweet) ? " is_mention" : ""}">
-		${this.isReply(tweet) ? `<a href="${tweet.in_reply_to_screen_name !== metadata.username ? twitterLink(`https://twitter.com/${tweet.in_reply_to_screen_name}/status/${tweet.in_reply_to_status_id_str}`) : `/${tweet.in_reply_to_status_id_str}/`}" class="tweet-pretext">…in reply to @${tweet.in_reply_to_screen_name}</a>` : ""}
-			<div class="tweet-text">${await this.renderFullText(tweet, options)}</div>
-			<span class="tweet-metadata">
-				${!options.hidePermalink ? `<a href="/${tweet.id_str}/" class="tag tag-naked">Permalink</a>` : ""}
-				<a href="https://twitter.com/${metadata.username}/status/${tweet.id_str}" class="tag tag-icon"><span class="sr-only">On twitter.com </span><img src="${this.avatarUrl("https://twitter.com/")}" alt="Twitter logo" width="27" height="27"></a>
-				${!this.isReply(tweet) ? (this.isRetweet(tweet) ? `<span class="tag tag-retweet">Retweet</span>` : (this.isMention(tweet) ? `<span class="tag">Mention</span>` : "")) : ""}
-				${!this.isRetweet(tweet) ? `<a href="/" class="tag tag-naked tag-lite tag-avatar"><img src="${metadata.avatar}" width="52" height="52" alt="${metadata.username}’s avatar" class="tweet-avatar"></a>` : ""}
-				${options.showPopularity && !this.isRetweet(tweet) ? `
-					${shareCount > 0 ? `<span class="tag tag-lite tag-retweet">♻️ ${this.renderNumber(shareCount)}<span class="sr-only"> Retweet${shareCount !== "1" ? "s" : ""}</span></span>` : ""}
-					${tweet.favorite_count > 0 ? `<span class="tag tag-lite tag-favorite">❤️ ${this.renderNumber(tweet.favorite_count)}<span class="sr-only"> Favorite${tweet.favorite_count !== "1" ? "s" : ""}</span></span>` : ""}
-				`.trim() : ""}
-				${tweet.date ? `<span class="tag tag-naked tag-lite">${this.renderDate(tweet.date)}</span>` : ""}
-				${!this.isRetweet(tweet) ?
-					`<span class="tag tag-naked tag-lite${!options.showSentiment || sentimentValue === 0 ? " sr-only" : ""}">Mood ` +
-						(sentimentValue > 0 ? "+" : "") +
-						`<strong class="tweet-sentiment">${sentimentValue}</strong>` +
-						(sentimentValue > 0 ? " 🙂" : (sentimentValue < 0 ? " 🙁" : "")) +
-					"</span>" : ""}
-			</span>
+			<div class="tweet-body">
+				${this.isReply(tweet) ? `<a href="${tweet.in_reply_to_screen_name !== metadata.username ? twitterLink(`https://twitter.com/${tweet.in_reply_to_screen_name}/status/${tweet.in_reply_to_status_id_str}`) : `/${tweet.in_reply_to_status_id_str}/`}" class="tweet-pretext">…in reply to @${tweet.in_reply_to_screen_name}</a>` : ""}
+				<div class="tweet-text">${await this.renderFullText(tweet, options)}</div>
+
+				${tweet.date ? `<div class="tweet-date">${this.renderDate(tweet.date)}</div>` : ""}
+
+				<div class="tweet-metadata">
+					${!options.hidePermalink ? `<a href="/${tweet.id_str}/" class="tag tag-naked">Permalink</a>` : ""}
+
+					<a href="https://twitter.com/${metadata.username}/status/${tweet.id_str}" class="tag tag-icon"><span class="sr-only">On twitter.com </span><img src="${this.avatarUrl("https://twitter.com/")}" alt="Twitter logo" width="27" height="27"></a>
+
+					${!this.isReply(tweet) ? (this.isRetweet(tweet) ? `<span class="tag tag-retweet">Retweet</span>` : (this.isMention(tweet) ? `<span class="tag">Mention</span>` : "")) : ""}
+
+					${!this.isRetweet(tweet) ? `<a href="/" class="tag tag-naked tag-lite tag-avatar"><img src="${metadata.avatar}" width="52" height="52" alt="${metadata.username}’s avatar" class="tweet-avatar"></a>` : ""}
+
+					${options.showPopularity && !this.isRetweet(tweet) ? `
+						${shareCount > 0 ? `<span class="tag tag-lite tag-retweet">♻️ ${this.renderNumber(shareCount)}<span class="sr-only"> Retweet${shareCount !== "1" ? "s" : ""}</span></span>` : ""}
+						${tweet.favorite_count > 0 ? `<span class="tag tag-lite tag-favorite">❤️ ${this.renderNumber(tweet.favorite_count)}<span class="sr-only"> Favorite${tweet.favorite_count !== "1" ? "s" : ""}</span></span>` : ""}
+					`.trim() : ""}
+
+					${!this.isRetweet(tweet) ?
+						`<span class="tag tag-naked tag-lite${!options.showSentiment || sentimentValue === 0 ? " sr-only" : ""}">Mood ` +
+							(sentimentValue > 0 ? "+" : "") +
+							`<strong class="tweet-sentiment">${sentimentValue}</strong>` +
+							(sentimentValue > 0 ? " 🙂" : (sentimentValue < 0 ? " 🙁" : "")) +
+						"</span>" : ""}
+				</div>
+			</div>
 		</li>`;
 
 		// source ? `<span class="tag tag-naked tag-lite">${source}</span>` : ""
