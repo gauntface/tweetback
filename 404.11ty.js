@@ -1,9 +1,10 @@
 const Twitter = require("./src/twitter");
+const metadata = require("./_data/metadata.js");
 
 class Index extends Twitter {
 	data() {
 		return {
-			layout: "layout.11ty.js",
+			layout: metadata.layout,
       permalink: "404.html"
 		};
 	}

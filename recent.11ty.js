@@ -1,10 +1,11 @@
 const Twitter = require("./src/twitter");
 const dataSource = require("./src/DataSource");
+const metadata = require("./_data/metadata.js");
 
 class Recent extends Twitter {
 	data() {
 		return {
-			layout: "layout.11ty.js"
+			layout: metadata.layout,
 		};
 	}
 

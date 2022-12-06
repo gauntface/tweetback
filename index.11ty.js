@@ -7,7 +7,7 @@ const dataSource = require("./src/DataSource");
 class Index extends Twitter {
 	data() {
 		return {
-			layout: "layout.11ty.js"
+			layout: metadata.layout,
 		};
 	}
 

@@ -1,5 +1,6 @@
 const Twitter = require("./src/twitter");
 const dataSource = require("./src/DataSource");
+const metadata = require("./_data/metadata.js");
 
 class TweetToFile extends Twitter {
 	async data() {
@@ -11,7 +12,7 @@ class TweetToFile extends Twitter {
 				before: (paginationData) => paginationData.sort((a, b) => b.date - a.date),
 				alias: "tweet"
 			},
-			layout: "layout.11ty.js",
+			layout: metadata.layout,
 			// permalink: false,
 			permalink: data => `/${data.tweet.id_str}/`,
 			hideHeaderTweetsLink: true

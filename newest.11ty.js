@@ -1,5 +1,6 @@
 const Twitter = require("./src/twitter");
 const dataSource = require("./src/DataSource");
+const metadata = require("./_data/metadata.js");
 
 /* This is related to the tweet-pages template so each individual page there doesn’t need an update when the newest tweet url changes */
 class NewestTweet extends Twitter {
@@ -12,7 +13,7 @@ class NewestTweet extends Twitter {
 				before: (paginationData) => paginationData.sort((a, b) => b.date - a.date).slice(0, 1),
 				alias: "tweet"
 			},
-			layout: "layout.11ty.js",
+			layout: metadata.layout,
 			permalink: "/newest/",
 			hideHeaderTweetsLink: true
 		};
