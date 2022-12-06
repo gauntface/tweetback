@@ -3,3 +3,7 @@ node_modules/
 _site
 .env
 package-lock.json
+database/tweets.js
+database/tweet.db
+_data/metadata.js
+img/
