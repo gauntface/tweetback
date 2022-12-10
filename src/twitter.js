@@ -163,9 +163,9 @@ class Twitter {
 					let displayUrlHtml = `<a href="${targetUrl}" class="${className}">${displayUrl}</a>`
 					text = text.replace(url.url, displayUrlHtml);
 
-					if(targetUrl.startsWith("https://") && !targetUrl.startsWith("https://twitter.com/")) {
+					/* if(targetUrl.startsWith("https://") && !targetUrl.startsWith("https://twitter.com/")) {
 						medias.push(`<template data-island><a href="${targetUrl}"><img src="https://v1.opengraph.11ty.dev/${encodeURIComponent(targetUrl)}/small/onerror/" alt="OpenGraph image for ${displayUrl}" loading="lazy" decoding="async" width="375" height="197" class="tweet-media tweet-media-og" onerror="this.parentNode.remove()"></a></template>`);
-					}
+					}*/
 				}
 			}
 
@@ -294,10 +294,13 @@ class Twitter {
 			return '';
 		}
 
-		return `<a href="/${tweet.id_str}/" class="tag tag-naked">Permalink</a>`;
+		return `<a href="/${tweet.id_str}/" class="tag tag-naked">🔗</a>`;
 	}
 
 	tweetTwitterURL(tweet) {
+		if (metadata.disableTwitterURL) {
+			return '';
+		}
 		return `<a href="https://twitter.com/${metadata.username}/status/${tweet.id_str}" class="tag tag-icon"><span class="sr-only">On twitter.com </span><img src="${this.avatarUrl("https://twitter.com/")}" alt="Twitter logo" width="27" height="27"></a>`
 	}
 
@@ -317,6 +320,10 @@ class Twitter {
 	}
 
 	tweetAvatar(tweet) {
+		if (metadata.disableAvatar) {
+			return '';
+		}
+
 		if (this.isRetweet(tweet)) {
 			return '';
 		}
@@ -326,18 +333,23 @@ class Twitter {
 
 	tweetPopularity(tweet, options) {
 		if (!options.showPopularity) {
-			return;
+			return '';
 		}
 
 		if (this.isRetweet(tweet)) {
-			return;
+			return '';
 		}
 
 		let shareCount = parseInt(tweet.retweet_count, 10) + (tweet.quote_count ? tweet.quote_count : 0);
 
-		return `${shareCount > 0 ? `<span class="tag tag-lite tag-retweet">♻️ ${this.renderNumber(shareCount)}<span class="sr-only"> Retweet${shareCount !== "1" ? "s" : ""}</span></span>` : ""}
-					${tweet.favorite_count > 0 ? `<span class="tag tag-lite tag-favorite">❤️ ${this.renderNumber(tweet.favorite_count)}<span class="sr-only"> Favorite${tweet.favorite_count !== "1" ? "s" : ""}</span></span>` : ""}
-				`.trim();
+		let content = '';
+		if (shareCount > 0) {
+			content = `<span class="tag tag-lite tag-retweet">♻️ ${this.renderNumber(shareCount)}<span class="sr-only"> Retweet${shareCount !== "1" ? "s" : ""}</span></span>`;
+		}
+		if (tweet.favorite_count > 0) {
+			content = `<span class="tag tag-lite tag-favorite">❤️ ${this.renderNumber(tweet.favorite_count)}<span class="sr-only"> Favorite${tweet.favorite_count !== "1" ? "s" : ""}</span></span>`;
+		}
+		return content.trim();
 	}
 
 	tweetDate(tweet) {

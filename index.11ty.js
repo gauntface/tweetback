@@ -266,11 +266,11 @@ class Index extends Twitter {
 		<form class="js" method="get" id="search-url">
 			<h2>Search for <label for="tweet-url">Tweet URL</label>:</h2>
 			<div class="tweets-search">
-				<div class="lo" style="--lo-margin-h: 1em; align-items: center;">
-					<div class="lo-c" style="flex-grow: 100">
-						<input type="url" id="tweet-url" required placeholder="Tweet URL" style="width: 100%">
+				<div class="lo">
+					<div class="lo-c">
+						<input type="url" id="tweet-url" required placeholder="Tweet URL">
 					</div>
-					<div class="lo-c" style="flex-grow: .001;">
+					<div class="lo-c">
 						<button type="submit">Search</button>
 					</div>
 				</div>
@@ -278,97 +278,43 @@ class Index extends Twitter {
 		</form>
 
 		<div>
-			<h2><a href="/recent/">Recent:</a></h2>
-			<div class="twtr-sentiment twtr-sentiment-max js">
-				<div class="twtr-sentiment-chart ct-chart"></div>
-				<div class="twtr-sentiment-label">
-					⬅️ New
-					<span>⬆️ 🙂<br>⬇️ 🙁</span>
-				</div>
-			</div>
+			<h2><a href="/recent/">Recent tweets</a></h2>
+			${this.sentimentChart()}
 			<ol class="tweets tweets-linear-list" id="tweets-recent-home">
 				${recentTweetsHtml.join("")}
 			</ol>
 		</div>
 
 		<div>
-			<h2><a href="/popular/">Popular:</a></h2>
+			<h2><a href="/popular/">Popular tweets</a></h2>
 			<ol class="tweets tweets-linear-list">
 				${mostPopularTweetsHtml.join("")}
 			</ol>
 		</div>
 
-		<h2 id="retweets">I’ve retweeted other tweets ${this.renderNumber(retweetCount)} times (${this.renderPercentage(retweetCount, tweetCount)})</h2>
-		<div class="lo" style="--lo-stackpoint: 20em">
+		<h2 id="retweets">I've retweeted other tweets ${this.renderNumber(retweetCount)} times (${this.renderPercentage(retweetCount, tweetCount)})</h2>
+		<div class="lo">
 			<div class="lo-c">
 				<h3>Most Retweeted</h3>
 				<ol>
 					${this.getTopUsersToRetweets(tweets).slice(0, 10).map(user => `<li><a href="${twitterLink(`https://twitter.com/${user.username}`)}">${user.username}</a> ${user.count} retweet${user.count != 1 ? "s" : ""}</li>`).join("")}
 				</ol>
 			</div>
-			<div class="lo-c">
-				<h3>Most Retweeted (Last 12 months)</h3>
-				<ol>
-					${this.getTopUsersToRetweets(last12MonthsTweets).slice(0, 10).map(user => `<li><a href="${twitterLink(`https://twitter.com/${user.username}`)}">${user.username}</a> ${user.count} retweet${user.count != 1 ? "s" : ""}</li>`).join("")}
-				</ol>
-			</div>
 		</div>
 
 		<h2 id="replies">Replies and Mentions</h2>
 		<h3>${this.renderPercentage(replyCount, tweetCount)} of my tweets are replies (×${this.renderNumber(replyCount)})</h3>
-		<div class="lo" style="--lo-stackpoint: 20em">
+		<div class="lo">
 			<div class="lo-c">
 				<h4>Most Replies To</h4>
 				<ol>
 					${this.getTopReplies(tweets).slice(0, 5).map(user => `<li><a href="${twitterLink(`https://twitter.com/${user.username}`)}">${user.username}</a> ${user.count} repl${user.count != 1 ? "ies" : "y"}</li>`).join("")}
 				</ol>
 			</div>
-			<div class="lo-c">
-				<h4>Most Replies To (Last 12 months)</h4>
-				<ol>
-					${this.getTopReplies(last12MonthsTweets).slice(0, 5).map(user => `<li><a href="${twitterLink(`https://twitter.com/${user.username}`)}">${user.username}</a> ${user.count} repl${user.count != 1 ? "ies" : "y"}</li>`).join("")}
-				</ol>
-			</div>
 		</div>
 		<h3>I’ve sent someone a mention ${this.renderNumber(mentionNotReplyCount)} times (${this.renderPercentage(mentionNotReplyCount, tweetCount)})</h3>
 
-		<h2 id="links">Most Frequent Sites I’ve Linked To</h2>
-		<h3>${this.renderPercentage(httpsLinksCount, linksCount)} of the links I’ve posted are using the <code>https:</code> protocol  (${this.renderNumber(httpsLinksCount)} of ${this.renderNumber(linksCount)})</h3>
-		<h3>${this.renderPercentage(httpsLinksCount12Months, linksCount12Months)} of the links I’ve posted in the last 12 months are using the <code>https:</code> protocol  (${this.renderNumber(httpsLinksCount12Months)} of ${this.renderNumber(linksCount12Months)})</h3>
-
-		<div class="lo" style="--lo-stackpoint: 20em">
-			<div class="lo-c">
-				<h4>Top Domains</h4>
-				<ol>
-					${this.getTopDomains(tweets).slice(0, 10).map(entry => `<li><a href="https://${entry.domain}">${entry.domain}</a> ${entry.count} tweets</li>`).join("")}
-				</ol>
-			</div>
-			<div class="lo-c">
-				<h4>Top Hosts</h4>
-				<ol>
-					${this.getTopHosts(tweets).slice(0, 10).map(entry => `<li><a href="https://${entry.host}">${entry.host}</a> ${entry.count} tweets</li>`).join("")}
-				</ol>
-			</div>
-		</div>
-
 		<h2 id="shared">My tweets have been given about <span class="tag tag-lite tag-retweet">♻️ ${this.renderNumber(retweetsEarnedCount)}</span> retweets and <span class="tag tag-lite tag-favorite">❤️ ${this.renderNumber(likesEarnedCount)}</span> likes</h2>
-
-		<h2 id="emoji">Top 5 Emoji Used in Tweets</h2>
-		<ol>
-			${emojis.slice(0, 5).map(obj => `<li>${obj.glyph} used ${obj.count} times on ${obj.tweetcount} tweets</li>`).join("")}
-		</ol>
-		<p><em>${this.renderNumber(emojis.length)} unique emoji on ${this.renderNumber(emoji.getTweetCount())} tweets (${this.renderPercentage(emoji.getTweetCount(), noRetweetsTweetCount)} of all tweets***)</em></p>
-		<h2 id="hashtags">Top 5 Hashtags</h2>
-		<ol>
-			${topHashes.slice(0, 5).map(hash => `<li><code>${hash.tag}</code> used ${hash.count} times ${hash.count > 1 && hash.count > hash.tweets.length ? `on ${hash.tweets.length} tweet${hash.tweets.length !== 1 ? "s" : ""}` : ""}</li>`).join("")}
-		</ol>
-		<p><em>${this.renderNumber(hashCount)} hashtags on ${this.renderNumber(tweetHashCount)} tweets (${this.renderPercentage(tweetHashCount, noRetweetsTweetCount)} of all tweets***)</em></p>
-		<h2 id="swears">Top 5 Swear Words</h2>
-		<ol>
-			${topSwears.slice(0, 5).map(swear => `<li><code>${this.renderSwearWord(swear.word)}</code> used ${swear.count} times ${swear.count > 1 && swear.count > swear.tweets.length ? `on ${swear.tweets.length} tweet${swear.tweets.length !== 1 ? "s" : ""}` : ""}</li>`).join("")}
-		</ol>
-		<p><em>${this.renderNumber(swearCount)} swear words on ${this.renderNumber(tweetSwearCount)} tweets (${this.renderPercentage(tweetSwearCount, noRetweetsTweetCount)} of all tweets***)</em></p>
-		<p>***: does not include retweets</p>
 
 		<script>
 		var searchForm = document.getElementById("search-url");
@@ -405,6 +351,20 @@ class Index extends Twitter {
 
 		// <h3>I’ve sent someone a mention ${this.renderNumber(mentionNotReplyCount)} times (${this.renderPercentage(mentionNotReplyCount, tweetCount)})</h3>
 		// <p>Mentions are tweets sent to a single person but not as a reply to an existing tweet. Note that this number is overinflated for old data—Twitter didn’t support official replies before July 2012.</p>
+	}
+
+	sentimentChart() {
+		if (metadata.disableSentiment) {
+			return '';
+		}
+
+		return `<div class="twtr-sentiment twtr-sentiment-max js">
+		<div class="twtr-sentiment-chart ct-chart"></div>
+		<div class="twtr-sentiment-label">
+			⬅️ New
+			<span>⬆️ 🙂<br>⬇️ 🙁</span>
+		</div>
+	</div>`;
 	}
 }
 

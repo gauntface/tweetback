@@ -10,7 +10,7 @@ module.exports = async function(data) {
 
 	return `---
 title: ${data.metadata.username}'s Twitter Archive${titleTweetNumberStr}
-description: A read-only indieweb self-hosted archive of${ data.pagination && data.pagination.hrefs && data.pagination.hrefs.length ? ` all ${data.pagination.hrefs.length}` : ""} of ${data.metadata.username}'s tweets.
+description: A read-only self-hosted archive of${ data.pagination && data.pagination.hrefs && data.pagination.hrefs.length ? ` all ${data.pagination.hrefs.length}` : ""} of ${data.metadata.username}'s tweets.
 ---
 ${data.content}`;
 };
