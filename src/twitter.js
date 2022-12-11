@@ -211,7 +211,7 @@ class Twitter {
 			}
 		}
 		if(medias.length) {
-			text += `<is-land on:visible><div class="tweet-medias">${medias.join("")}</div></is-land>`;
+			text += `<div class="tweet-medias">${medias.join("")}</div>`;
 		}
 		return text;
 	}
@@ -344,10 +344,10 @@ class Twitter {
 
 		let content = '';
 		if (shareCount > 0) {
-			content = `<span class="tag tag-lite tag-retweet">♻️ ${this.renderNumber(shareCount)}<span class="sr-only"> Retweet${shareCount !== "1" ? "s" : ""}</span></span>`;
+			content += `<span class="tag tag-lite tag-retweet">♻️ ${this.renderNumber(shareCount)}<span class="sr-only"> Retweet${shareCount !== "1" ? "s" : ""}</span></span>`;
 		}
 		if (tweet.favorite_count > 0) {
-			content = `<span class="tag tag-lite tag-favorite">❤️ ${this.renderNumber(tweet.favorite_count)}<span class="sr-only"> Favorite${tweet.favorite_count !== "1" ? "s" : ""}</span></span>`;
+			content += `<span class="tag tag-lite tag-favorite">❤️ ${this.renderNumber(tweet.favorite_count)}<span class="sr-only"> Favorite${tweet.favorite_count !== "1" ? "s" : ""}</span></span>`;
 		}
 		return content.trim();
 	}
